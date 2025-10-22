@@ -17,6 +17,7 @@ const signupSchema = Yup.object().shape({
     .max(50, "First name must be less than 50 characters"),
   lastName: Yup.string()
     .trim()
+    .required("Last name is required")
     .max(50, "Last name must be less than 50 characters"),
   email: Yup.string()
     .trim()
@@ -34,12 +35,15 @@ const signupSchema = Yup.object().shape({
     .max(100, "Company name must be less than 100 characters"),
   address: Yup.string()
     .trim()
-    .max(200, "Address must be less than 200 characters"),
+    .required("Company address is required")
+    .max(500, "Address must be less than 500 characters"),
   city: Yup.string()
     .trim()
+    .required("City is required")
     .max(50, "City must be less than 50 characters"),
   zip: Yup.string()
     .trim()
+    .required("ZIP code is required")
     .matches(/^[0-9]{6}$/, "ZIP code must be 6 digits"),
   industry: Yup.string()
     .trim()
@@ -53,6 +57,7 @@ const signupSchema = Yup.object().shape({
 const Signup = () => {
   const navigate = useNavigate();
   const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [passwordStrength, setPasswordStrength] = useState<'weak' | 'medium' | 'strong' | ''>('');
 
   const formik = useFormik({
     initialValues: {
@@ -103,6 +108,16 @@ const Signup = () => {
     },
   });
 
+  const calculatePasswordStrength = (password: string) => {
+    if (password.length === 0) return '';
+    if (password.length < 8) return 'weak';
+    if (password.length >= 8 && /^(?=.*[A-Za-z])(?=.*\d)/.test(password)) {
+      if (password.length >= 12 && /(?=.*[!@#$%^&*])/.test(password)) return 'strong';
+      return 'medium';
+    }
+    return 'weak';
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
@@ -120,7 +135,7 @@ const Signup = () => {
 
   return (
     <div className="min-h-screen bg-gradient-hero flex items-center justify-center p-4">
-      <Card className="w-full max-w-2xl shadow-elegant">
+      <Card className="w-full max-w-6xl shadow-elegant">
         <CardHeader className="text-center space-y-2">
           <div className="flex justify-center mb-2">
             <div className="p-3 bg-gradient-primary rounded-lg shadow-glow">
@@ -133,116 +148,144 @@ const Signup = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={formik.handleSubmit} className="space-y-6">
-            {/* Personal Information */}
-            <div className="space-y-4">
-              <h3 className="font-semibold text-lg">Personal Information</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <form onSubmit={formik.handleSubmit}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
+              {/* User Information Column */}
+              <div className="space-y-4">
+                <h3 className="font-semibold text-lg border-b pb-2">User Information</h3>
                 <div className="space-y-2">
                   <Label htmlFor="firstName">First Name *</Label>
                   <Input
                     id="firstName"
                     {...formik.getFieldProps("firstName")}
-                    placeholder="Enter your first name"
+                    placeholder="Enter first name"
                   />
                   {formik.touched.firstName && formik.errors.firstName && (
                     <p className="text-sm text-destructive">{formik.errors.firstName}</p>
                   )}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="lastName">Last Name</Label>
+                  <Label htmlFor="lastName">Last Name *</Label>
                   <Input
                     id="lastName"
                     {...formik.getFieldProps("lastName")}
-                    placeholder="Enter your last name"
+                    placeholder="Enter last name"
                   />
                   {formik.touched.lastName && formik.errors.lastName && (
                     <p className="text-sm text-destructive">{formik.errors.lastName}</p>
                   )}
                 </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email Address *</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  {...formik.getFieldProps("email")}
-                  placeholder="your.email@example.com"
-                />
-                {formik.touched.email && formik.errors.email && (
-                  <p className="text-sm text-destructive">{formik.errors.email}</p>
-                )}
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="password">Password *</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  {...formik.getFieldProps("password")}
-                  placeholder="Min 8 characters, letters and numbers"
-                />
-                {formik.touched.password && formik.errors.password && (
-                  <p className="text-sm text-destructive">{formik.errors.password}</p>
-                )}
-              </div>
-            </div>
-
-            {/* Company Information */}
-            <div className="space-y-4">
-              <h3 className="font-semibold text-lg">Company Information</h3>
-              <div className="space-y-2">
-                <Label htmlFor="companyName">Company Name *</Label>
-                <Input
-                  id="companyName"
-                  {...formik.getFieldProps("companyName")}
-                  placeholder="Your company name"
-                />
-                {formik.touched.companyName && formik.errors.companyName && (
-                  <p className="text-sm text-destructive">{formik.errors.companyName}</p>
-                )}
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="address">Address</Label>
-                <Input
-                  id="address"
-                  {...formik.getFieldProps("address")}
-                  placeholder="Street address"
-                />
-                {formik.touched.address && formik.errors.address && (
-                  <p className="text-sm text-destructive">{formik.errors.address}</p>
-                )}
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="city">City</Label>
+                  <Label htmlFor="email">Email *</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    {...formik.getFieldProps("email")}
+                    placeholder="Enter your email"
+                  />
+                  {formik.touched.email && formik.errors.email && (
+                    <p className="text-sm text-destructive">{formik.errors.email}</p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="password">Password *</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    {...formik.getFieldProps("password")}
+                    onChange={(e) => {
+                      formik.handleChange(e);
+                      setPasswordStrength(calculatePasswordStrength(e.target.value));
+                    }}
+                    placeholder="Enter password"
+                  />
+                  {formik.values.password && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-muted-foreground">Password strength:</span>
+                      <span className={`text-sm font-medium ${
+                        passwordStrength === 'weak' ? 'text-destructive' : 
+                        passwordStrength === 'medium' ? 'text-orange-500' : 
+                        'text-green-500'
+                      }`}>
+                        {passwordStrength.charAt(0).toUpperCase() + passwordStrength.slice(1)}
+                      </span>
+                    </div>
+                  )}
+                  {formik.touched.password && formik.errors.password && (
+                    <p className="text-sm text-destructive">{formik.errors.password}</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Company Information Column */}
+              <div className="space-y-4">
+                <h3 className="font-semibold text-lg border-b pb-2">Company Information</h3>
+                <div className="space-y-2">
+                  <Label htmlFor="companyName">Company Name *</Label>
+                  <Input
+                    id="companyName"
+                    {...formik.getFieldProps("companyName")}
+                    placeholder="Enter company name"
+                  />
+                  {formik.touched.companyName && formik.errors.companyName && (
+                    <p className="text-sm text-destructive">{formik.errors.companyName}</p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="logo">Company Logo</Label>
+                  <Input
+                    id="logo"
+                    type="file"
+                    accept="image/png,image/jpeg"
+                    onChange={handleFileChange}
+                    className="cursor-pointer"
+                  />
+                  <p className="text-xs text-muted-foreground">Max 2-5 MB</p>
+                  {logoFile && (
+                    <p className="text-sm text-muted-foreground">
+                      Selected: {logoFile.name}
+                    </p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="address">Address *</Label>
+                  <Input
+                    id="address"
+                    {...formik.getFieldProps("address")}
+                    placeholder="Enter company address"
+                  />
+                  {formik.touched.address && formik.errors.address && (
+                    <p className="text-sm text-destructive">{formik.errors.address}</p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="city">City *</Label>
                   <Input
                     id="city"
                     {...formik.getFieldProps("city")}
-                    placeholder="City"
+                    placeholder="Enter city"
                   />
                   {formik.touched.city && formik.errors.city && (
                     <p className="text-sm text-destructive">{formik.errors.city}</p>
                   )}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="zip">ZIP Code</Label>
+                  <Label htmlFor="zip">Zip Code *</Label>
                   <Input
                     id="zip"
                     {...formik.getFieldProps("zip")}
-                    placeholder="6 digits"
+                    placeholder="6 digit zip code"
                   />
                   {formik.touched.zip && formik.errors.zip && (
                     <p className="text-sm text-destructive">{formik.errors.zip}</p>
                   )}
                 </div>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="industry">Industry</Label>
                   <Input
                     id="industry"
                     {...formik.getFieldProps("industry")}
-                    placeholder="e.g., IT Services"
+                    placeholder="Industry type"
                   />
                   {formik.touched.industry && formik.errors.industry && (
                     <p className="text-sm text-destructive">{formik.errors.industry}</p>
@@ -253,30 +296,12 @@ const Signup = () => {
                   <Input
                     id="currencySymbol"
                     {...formik.getFieldProps("currencySymbol")}
-                    placeholder="₹, $, €"
+                    placeholder="$, ₹, €, AED"
                   />
                   {formik.touched.currencySymbol && formik.errors.currencySymbol && (
                     <p className="text-sm text-destructive">{formik.errors.currencySymbol}</p>
                   )}
                 </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="logo">Company Logo (PNG/JPG, max 5MB)</Label>
-                <div className="flex items-center gap-2">
-                  <Input
-                    id="logo"
-                    type="file"
-                    accept="image/png,image/jpeg"
-                    onChange={handleFileChange}
-                    className="cursor-pointer"
-                  />
-                  <Upload className="h-5 w-5 text-muted-foreground" />
-                </div>
-                {logoFile && (
-                  <p className="text-sm text-muted-foreground">
-                    Selected: {logoFile.name}
-                  </p>
-                )}
               </div>
             </div>
 
@@ -284,10 +309,10 @@ const Signup = () => {
               {formik.isSubmitting ? "Creating Account..." : "Sign Up"}
             </Button>
 
-            <p className="text-center text-sm text-muted-foreground">
+            <p className="text-center text-sm text-muted-foreground mt-4">
               Already have an account?{" "}
               <Link to="/login" className="text-primary hover:underline font-medium">
-                Log in
+                Login
               </Link>
             </p>
           </form>

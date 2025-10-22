@@ -59,7 +59,13 @@ async function apiRequest<T>(
     return {} as T;
   }
 
-  return response.json();
+  // ✅ Check if response body exists
+  const text = await response.text();
+  if (text && text.trim() !== '') {
+    return JSON.parse(text);
+  }
+
+  return {} as T;
 }
 
 // Auth API
@@ -261,5 +267,12 @@ export const invoiceAPI = {
   getTrend12m: (asOf?: string) => {
     const query = asOf ? `?asOf=${asOf}` : '';
     return apiRequest(`/Invoice/GetTrend12m${query}`, { method: 'GET' });
+  },
+
+  getTopItems: (fromDate?: string, toDate?: string, topN = 5) => {
+    let query = `?topN=${topN}`;
+    if (fromDate) query += `&fromDate=${fromDate}`;
+    if (toDate) query += `&toDate=${toDate}`;
+    return apiRequest(`/Invoice/TopItems${query}`);
   },
 };
