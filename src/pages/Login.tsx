@@ -63,7 +63,7 @@ const Login = () => {
           </div>
           <CardTitle className="text-3xl font-bold">Welcome Back</CardTitle>
           <CardDescription className="text-base">
-            Log in to your account
+            Log in to your accoun
           </CardDescription>
         </CardHeader>
         <CardContent>
